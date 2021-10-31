@@ -2,7 +2,8 @@ const express = require('express')
 const { MongoClient } = require('mongodb');
 var bodyParser = require('body-parser')
 const ObjectId = require('mongodb').ObjectId
-const cors = require('cors')
+const cors = require('cors');
+const { response } = require('express');
 require('dotenv').config()
 
 
@@ -55,10 +56,6 @@ async function run() {
         app.post('/addNewPackage', async (req, res) => {
             const newPackage = req.body;
             const result = await packageCollection.insertOne(newPackage)
-            // console.log("Post added by hitting the addPackage link");
-            // console.log(newPackage);
-            // console.log("Adding done");
-            // console.log(result);
             res.send(result);
         })
 
@@ -80,16 +77,39 @@ async function run() {
             res.json(results)
         })
 
-        // delete orders
 
-        app.delete('/deleteOrder/:id', async (req, res) => {
+        // adding all booking & orders 
+        app.put('/order/update/:id', async (req, res) => {
             const id = req.params.id;
+            const UpdatedOrder = req.body;
+            const options = { upsert: true };
 
             console.log(id);
-            const result = await ordersCollection.deleteOne({ _id: ObjectId(id) })
-            console.log(result);
+            console.log("hitting update", id);
+            const results = await ordersCollection.updateOne({ _id: ObjectId(id) }, {
+                $set: {
+                    Package: UpdatedOrder.Package,
+                    bookedBy: UpdatedOrder.bookedBy,
+                    price: UpdatedOrder.price,
+                    status: UpdatedOrder.status
+                }
+            }, options);
+            res.json(results)
+            console.log(results);
+        })
 
-            console.log('hitted the url');
+
+
+
+
+
+
+        // delete orders
+        app.delete('/deleteOrder/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await ordersCollection.deleteOne({ _id: ObjectId(id) })
+            res.json(result)
+
         })
 
 
